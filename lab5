@@ -1,0 +1,35 @@
+module combined_up_down_counter(
+    input clk, reset, 
+    input sel, dp_ctrl, en_umode, en_dmode,
+    input [3:0] rem,
+    input [4:0] sys_in,
+    input dc_mode,
+    output [6:0] segment,
+    output [7:0] AN,
+    output dp
+    );
+    
+    wire clk_div_out;  
+    wire [3:0] up_out, down_out, mux_out;  
+    clk_divider CLK_DIV(
+          .sys_clk(clk), .sys_reset(reset), .sys_mode(sys_in), .clk_div(clk_div_out)  
+    );
+       
+    up_counter UP_COUNT(
+        .clk(clk_div_out), .reset(reset), .up_en(en_umode), .bcd(up_out), .dc_mode(dc_mode), .rem(mux_out)
+    );
+    
+    down_counter DOWN_COUNT(
+        .clk(clk_div_out), .reset(reset), .down_en(en_dmode), .bcd(down_out),.dc_mode(dc_mode), .rem(mux_out)
+        );
+        
+    Mux_2to1 MUX(
+        .sel(sel), .d0(up_out), .d1(down_out), .out(mux_out)
+    );
+    
+    display_driver DISPLAY_DRIVER(
+         .display(mux_out),.dp_ctrl(dp_ctrl),.segment(segment), .AN(AN),  .dp(dp)
+        );
+        
+      
+endmodule
